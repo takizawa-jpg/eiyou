@@ -32,77 +32,151 @@
       padding: 12px;
       box-shadow: 0 10px 25px rgba(0,0,0,0.08);
       position: relative;
-      min-height: 520px;
+      min-height: 540px;
     }
 
     /* モーダルオーバーレイ（スタート・結果） */
     .overlay {
       position: absolute;
       top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(15, 23, 42, 0.92);
+      background: rgba(15, 23, 42, 0.94);
       color: white;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
+      justify-content: flex-start;
       border-radius: 20px;
       z-index: 999;
-      padding: 20px;
-      opacity: 1;
-      transition: opacity 0.2s ease;
+      padding: 16px 14px;
+      overflow-y: auto;
     }
     .overlay.hidden {
       display: none;
-      opacity: 0;
       pointer-events: none;
     }
 
     .overlay-title {
-      font-size: 26px;
+      font-size: 24px;
       font-weight: bold;
       color: #fde047;
-      margin-bottom: 12px;
+      margin-bottom: 8px;
+    }
+
+    /* コース選択カード */
+    .course-title {
+      font-size: 14px;
+      font-weight: bold;
+      color: #38bdf8;
+      margin: 8px 0 6px 0;
+    }
+    .course-options {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      width: 100%;
+      max-width: 340px;
+    }
+    .course-btn {
+      background: rgba(255, 255, 255, 0.1);
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      border-radius: 12px;
+      padding: 8px 10px;
+      color: white;
+      text-align: left;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: all 0.2s;
+    }
+    .course-btn.selected {
+      background: rgba(16, 185, 129, 0.3);
+      border-color: #10b981;
+      box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
+    }
+    .course-icon {
+      font-size: 26px;
+    }
+    .course-info {
+      display: flex;
+      flex-direction: column;
+    }
+    .course-name {
+      font-size: 15px;
+      font-weight: bold;
+      color: #fde047;
+    }
+    .course-desc {
+      font-size: 11px;
+      opacity: 0.8;
+      margin-top: 2px;
     }
 
     .action-btn {
-      font-size: 22px;
+      font-size: 20px;
       font-weight: bold;
-      padding: 14px 32px;
+      padding: 10px 30px;
       border-radius: 50px;
       border: none;
       background: linear-gradient(135deg, #10b981, #059669);
       color: white;
-      box-shadow: 0 6px #047857;
+      box-shadow: 0 5px #047857;
       cursor: pointer;
-      margin-top: 15px;
+      margin-top: 10px;
+      margin-bottom: 8px;
     }
     .action-btn:active {
-      transform: translateY(3px);
-      box-shadow: 0 3px #047857;
+      transform: translateY(2px);
+      box-shadow: 0 2px #047857;
+    }
+
+    /* 名前入力フォーム */
+    .name-input-group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 8px 0;
+      width: 100%;
+      max-width: 280px;
+    }
+    .name-input-label {
+      font-size: 13px;
+      color: #cbd5e1;
+      margin-bottom: 4px;
+    }
+    .name-input {
+      width: 100%;
+      padding: 8px 12px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: 2px solid #38bdf8;
+      text-align: center;
+      font-weight: bold;
+      outline: none;
     }
 
     /* ランキング表示スタイル */
     .ranking-box {
-      background: rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.08);
       border-radius: 12px;
-      padding: 10px 15px;
+      padding: 8px 12px;
       width: 100%;
-      max-width: 320px;
-      margin: 12px 0;
+      max-width: 340px;
+      margin: 6px 0;
       text-align: left;
     }
     .ranking-title {
-      font-size: 16px;
+      font-size: 14px;
       font-weight: bold;
       color: #38bdf8;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
       text-align: center;
     }
     .ranking-list {
       list-style: none;
       padding: 0;
       margin: 0;
-      font-size: 14px;
+      font-size: 12px;
     }
     .ranking-item {
       display: flex;
@@ -112,15 +186,19 @@
       border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     }
     .ranking-item:last-child { border-bottom: none; }
-    .rank-num { font-weight: bold; color: #fde047; width: 30px; }
+    .rank-num { font-weight: bold; color: #fde047; width: 24px; }
+    .rank-user { flex: 1; display: flex; align-items: center; gap: 4px; overflow: hidden; }
+    .rank-name { font-weight: bold; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; max-width: 80px; }
+    .rank-char { font-size: 11px; opacity: 0.8; }
+    .rank-score { font-weight: bold; color: #34d399; margin-left: 6px; }
 
     /* 結果画面のキャラ表示 */
     .result-char {
-      font-size: 60px;
-      margin: 8px 0;
+      font-size: 50px;
+      margin: 4px 0;
     }
     .result-score {
-      font-size: 22px;
+      font-size: 20px;
       font-weight: bold;
       color: #34d399;
     }
@@ -140,7 +218,7 @@
       justify-content: space-around;
     }
     .char-avatar {
-      font-size: 45px;
+      font-size: 42px;
       transition: transform 0.2s;
     }
     .char-avatar.grow {
@@ -150,11 +228,11 @@
       text-align: left;
     }
     .char-name {
-      font-size: 15px;
+      font-size: 14px;
       font-weight: bold;
     }
     .score-text {
-      font-size: 16px;
+      font-size: 15px;
       font-weight: bold;
       color: #059669;
     }
@@ -163,7 +241,7 @@
     .gauge-bg {
       background: #cbd5e1;
       border-radius: 8px;
-      height: 12px;
+      height: 10px;
       width: 100%;
       margin-top: 5px;
       overflow: hidden;
@@ -243,35 +321,61 @@
     <!-- スタート画面モーダル -->
     <div class="overlay" id="startScreen">
       <div class="overlay-title">3しょくパクモンパズル</div>
-      <p style="font-size: 14px; margin: 0 0 10px 0;">あか・きいろ・みどり の3しょくをそろえて<br>パクモンを せいちょう させよう！</p>
       
-      <!-- ランキング表示 -->
-      <div class="ranking-box">
-        <div class="ranking-title">🏆 ハイスコアランキング</div>
-        <ol class="ranking-list" id="startRankingList">
-          <!-- JSで動的生成 -->
-        </ol>
+      <div class="course-title">せいちょうコースをえらんでね！</div>
+      <div class="course-options">
+        <div class="course-btn selected" onclick="selectCourse(0)" id="courseBtn0">
+          <div class="course-icon">⚾</div>
+          <div class="course-info">
+            <div class="course-name">① スポーツせんしゅコース</div>
+            <div class="course-desc">あかちゃん ➔ やきゅうぶ ➔ メジャーリーガー</div>
+          </div>
+        </div>
+        <div class="course-btn" onclick="selectCourse(1)" id="courseBtn1">
+          <div class="course-icon">🩺</div>
+          <div class="course-info">
+            <div class="course-name">② いしゃ・がくしゃコース</div>
+            <div class="course-desc">あかちゃん ➔ ごうかく ➔ いしゃ ➔ だいがくきょうじゅ</div>
+          </div>
+        </div>
+        <div class="course-btn" onclick="selectCourse(2)" id="courseBtn2">
+          <div class="course-icon">🌟</div>
+          <div class="course-info">
+            <div class="course-name">③ げいのうコース</div>
+            <div class="course-desc">あかちゃん ➔ モデル ➔ げいのうじん ➔ はいゆう</div>
+          </div>
+        </div>
       </div>
 
       <button class="action-btn" id="startBtn">スタート！</button>
+
+      <!-- ランキング表示 -->
+      <div class="ranking-box">
+        <div class="ranking-title">🏆 スコアランキング</div>
+        <ol class="ranking-list" id="startRankingList"></ol>
+      </div>
     </div>
 
     <!-- リザルト（ゲーム終了）画面モーダル -->
     <div class="overlay hidden" id="resultScreen">
       <div class="overlay-title">これだけ成長したよ！</div>
       <div class="result-char" id="resultCharAvatar">👶</div>
-      <div id="resultCharName" style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">あかちゃんパクモン</div>
+      <div id="resultCharName" style="font-size: 16px; font-weight: bold;">あかちゃん</div>
       <div class="result-score">てんすう: <span id="finalScore">0</span> てん</div>
+
+      <!-- 名前入力フォーム -->
+      <div class="name-input-group">
+        <label class="name-input-label" for="playerName">なまえを 入力して ランキングに とうろく！</label>
+        <input type="text" id="playerName" class="name-input" placeholder="なまえ" maxlength="8">
+      </div>
+
+      <button class="action-btn" id="saveAndRetryBtn">とうろくして もういちど！</button>
 
       <!-- ランキング表示 -->
       <div class="ranking-box">
-        <div class="ranking-title">🏆 ハイスコアランキング</div>
-        <ol class="ranking-list" id="resultRankingList">
-          <!-- JSで動的生成 -->
-        </ol>
+        <div class="ranking-title">🏆 スコアランキング</div>
+        <ol class="ranking-list" id="resultRankingList"></ol>
       </div>
-
-      <button class="action-btn" id="retryBtn">もういちど！</button>
     </div>
 
     <!-- 上部情報 -->
@@ -279,7 +383,7 @@
       <div class="char-row">
         <div class="char-avatar" id="avatar">👶</div>
         <div class="char-info">
-          <div class="char-name" id="charName">あかちゃんパクモン</div>
+          <div class="char-name" id="charName">あかちゃん</div>
           <div class="score-text">てんすう: <span id="score">0</span></div>
         </div>
       </div>
@@ -316,19 +420,71 @@
       { name: "ぶどう", emoji: "🍇", group: "green" }
     ];
 
-    const EVOLUTIONS = [
-      { lv: 1, name: "あかちゃんパクモン", avatar: "👶", reqScore: 0 },
-      { lv: 2, name: "こどもパクモン", avatar: "👦", reqScore: 60 },
-      { lv: 3, name: "おとなパクモン", avatar: "🧍", reqScore: 150 },
-      { lv: 4, name: "スーパーパクモン", avatar: "🦸‍♂️", reqScore: 300 }
+    // 3つの成長コース定義
+    const COURSES = [
+      {
+        id: "sports",
+        title: "スポーツ選手コース",
+        evolutions: [
+          { lv: 1, name: "赤ちゃん", avatar: "👶", reqScore: 0 },
+          { lv: 2, name: "幼児", avatar: "🧒", reqScore: 40 },
+          { lv: 3, name: "小学生", avatar: "👦", reqScore: 90 },
+          { lv: 4, name: "野球部", avatar: "⚾", reqScore: 150 },
+          { lv: 5, name: "甲子園出場", avatar: "🏆", reqScore: 220 },
+          { lv: 6, name: "大学野球選手", avatar: "🏃‍♂️", reqScore: 300 },
+          { lv: 7, name: "プロ野球選手", avatar: "🧢", reqScore: 400 },
+          { lv: 8, name: "メジャーリーガー", avatar: "🌟", reqScore: 520 }
+        ]
+      },
+      {
+        id: "doctor",
+        title: "医者・学者コース",
+        evolutions: [
+          { lv: 1, name: "赤ちゃん", avatar: "👶", reqScore: 0 },
+          { lv: 2, name: "幼児", avatar: "🧒", reqScore: 40 },
+          { lv: 3, name: "小学生", avatar: "👦", reqScore: 90 },
+          { lv: 4, name: "中学受験合格", avatar: "🎒", reqScore: 150 },
+          { lv: 5, name: "高校受験合格", avatar: "✏️", reqScore: 220 },
+          { lv: 6, name: "大学医学部合格", avatar: "🎓", reqScore: 300 },
+          { lv: 7, name: "医者", avatar: "🩺", reqScore: 400 },
+          { lv: 8, name: "大学教授", avatar: "👨‍🏫", reqScore: 520 }
+        ]
+      },
+      {
+        id: "entertainment",
+        title: "芸能コース",
+        evolutions: [
+          { lv: 1, name: "赤ちゃん", avatar: "👶", reqScore: 0 },
+          { lv: 2, name: "幼児", avatar: "🧒", reqScore: 40 },
+          { lv: 3, name: "小学生", avatar: "👧", reqScore: 90 },
+          { lv: 4, name: "研修生", avatar: "🎤", reqScore: 150 },
+          { lv: 5, name: "高校生モデル", avatar: "📸", reqScore: 220 },
+          { lv: 6, name: "インフルエンサー", avatar: "📱", reqScore: 300 },
+          { lv: 7, name: "芸能人", avatar: "✨", reqScore: 400 },
+          { lv: 8, name: "売れっ子俳優", avatar: "🎬", reqScore: 520 }
+        ]
+      }
     ];
 
+    let selectedCourseIdx = 0;
     let board = [];
     let currentPiece = null;
     let score = 0;
     let currentLv = 1;
     let gameInterval = null;
     let isGameOver = false;
+
+    function selectCourse(idx) {
+      selectedCourseIdx = idx;
+      for (let i = 0; i < 3; i++) {
+        const btn = document.getElementById(`courseBtn${i}`);
+        if (i === idx) {
+          btn.classList.add('selected');
+        } else {
+          btn.classList.remove('selected');
+        }
+      }
+    }
 
     // 盤面初期化
     function initBoard() {
@@ -499,14 +655,15 @@
     }
 
     function updateEvolution() {
-      let nextEv = EVOLUTIONS.find(e => e.lv === currentLv + 1);
-      let currentEv = EVOLUTIONS.find(e => e.lv === currentLv);
+      const evolutions = COURSES[selectedCourseIdx].evolutions;
+      let nextEv = evolutions.find(e => e.lv === currentLv + 1);
+      let currentEv = evolutions.find(e => e.lv === currentLv);
 
       if (nextEv) {
         let progress = ((score - currentEv.reqScore) / (nextEv.reqScore - currentEv.reqScore)) * 100;
         if (progress >= 100) {
           currentLv++;
-          let newEv = EVOLUTIONS.find(e => e.lv === currentLv);
+          let newEv = evolutions.find(e => e.lv === currentLv);
           document.getElementById('avatar').textContent = newEv.avatar;
           document.getElementById('charName').textContent = newEv.name;
         }
@@ -550,23 +707,26 @@
     /* --- ランキング機能 --- */
     function getRankings() {
       try {
-        return JSON.parse(localStorage.getItem('pakumon_rankings')) || [];
+        return JSON.parse(localStorage.getItem('pakumon_v2_rankings')) || [];
       } catch (e) {
         return [];
       }
     }
 
-    function saveScore(score, charObj) {
+    function saveScore(userName, finalScore, charObj) {
+      if (!userName || userName.trim() === '') {
+        userName = 'ななし';
+      }
       let rankings = getRankings();
       rankings.push({
-        score: score,
+        name: userName.trim(),
+        score: finalScore,
         avatar: charObj.avatar,
-        name: charObj.name,
-        date: new Date().toLocaleDateString('ja-JP')
+        charName: charObj.name
       });
       rankings.sort((a, b) => b.score - a.score);
-      rankings = rankings.slice(0, 5); // TOP5のみ保持
-      localStorage.setItem('pakumon_rankings', JSON.stringify(rankings));
+      rankings = rankings.slice(0, 5); // TOP5保存
+      localStorage.setItem('pakumon_v2_rankings', JSON.stringify(rankings));
     }
 
     function renderRankings() {
@@ -581,9 +741,12 @@
         rankings.forEach((r, idx) => {
           html += `
             <li class="ranking-item">
-              <span class="rank-num">${idx + 1}い</span>
-              <span>${r.avatar} ${r.name}</span>
-              <span style="font-weight:bold; color:#34d399;">${r.score}pt</span>
+              <span class="rank-num">${idx + 1}位</span>
+              <div class="rank-user">
+                <span class="rank-name">${r.name}</span>
+                <span class="rank-char">(${r.avatar}${r.charName})</span>
+              </div>
+              <span class="rank-score">${r.score}pt</span>
             </li>
           `;
         });
@@ -597,18 +760,29 @@
       isGameOver = true;
       if (gameInterval) clearInterval(gameInterval);
 
-      let finalChar = EVOLUTIONS.find(e => e.lv === currentLv) || EVOLUTIONS[0];
+      const evolutions = COURSES[selectedCourseIdx].evolutions;
+      let finalChar = evolutions.find(e => e.lv === currentLv) || evolutions[0];
 
-      // スコア保存
-      saveScore(score, finalChar);
-      renderRankings();
-
-      // リザルト表示
+      // リザルト画面更新
       document.getElementById('finalScore').textContent = score;
       document.getElementById('resultCharAvatar').textContent = finalChar.avatar;
       document.getElementById('resultCharName').textContent = finalChar.name;
 
+      renderRankings();
       document.getElementById('resultScreen').classList.remove('hidden');
+    }
+
+    function handleSaveAndRetry() {
+      const nameInput = document.getElementById('playerName');
+      const evolutions = COURSES[selectedCourseIdx].evolutions;
+      let finalChar = evolutions.find(e => e.lv === currentLv) || evolutions[0];
+
+      saveScore(nameInput.value, score, finalChar);
+      nameInput.value = '';
+
+      document.getElementById('resultScreen').classList.add('hidden');
+      document.getElementById('startScreen').classList.remove('hidden');
+      renderRankings();
     }
 
     function startGame() {
@@ -624,9 +798,10 @@
       score = 0;
       currentLv = 1;
       
+      const initialChar = COURSES[selectedCourseIdx].evolutions[0];
       document.getElementById('score').textContent = 0;
-      document.getElementById('avatar').textContent = EVOLUTIONS[0].avatar;
-      document.getElementById('charName').textContent = EVOLUTIONS[0].name;
+      document.getElementById('avatar').textContent = initialChar.avatar;
+      document.getElementById('charName').textContent = initialChar.name;
       document.getElementById('gauge').style.width = '0%';
 
       initBoard();
@@ -636,7 +811,7 @@
       gameInterval = setInterval(tick, 1000);
     }
 
-    // ボタンのイベント割り当て
+    // イベントバインド
     function bindButton(id, action) {
       const el = document.getElementById(id);
       if (!el) return;
@@ -653,9 +828,9 @@
     bindButton('btnRotate', rotatePiece);
     bindButton('btnDown', dropDown);
     bindButton('startBtn', startGame);
-    bindButton('retryBtn', startGame);
+    bindButton('saveAndRetryBtn', handleSaveAndRetry);
 
-    // キーボード操作対応
+    // キーボード操作
     document.addEventListener('keydown', (e) => {
       if (e.key === 'ArrowLeft') moveLeft();
       if (e.key === 'ArrowRight') moveRight();
@@ -663,7 +838,7 @@
       if (e.key === 'ArrowDown') dropDown();
     });
 
-    // 初期化時（盤面作成・ランキング表示のみ、スタートボタン待機）
+    // 初期起動
     window.onload = function() {
       initBoard();
       renderRankings();
