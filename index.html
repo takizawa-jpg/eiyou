@@ -110,7 +110,7 @@
     .cell.group-yellow { border: 2px solid #eab308; background: #422006; }
     .cell.group-green { border: 2px solid #22c55e; background: #052e16; }
 
-    /* 操作ボタン（iPad向け） */
+    /* 操作ボタン */
     .controls {
       display: flex;
       flex-direction: column;
@@ -144,12 +144,12 @@
     .ctrl-btn.rotate { background: #10b981; box-shadow: 0 4px #047857; }
     .ctrl-btn.down { background: #f59e0b; box-shadow: 0 4px #b45309; }
 
-    /* ゲームオーバー表示（最前面に表示＆タッチ領域確保） */
+    /* ゲームオーバー表示（初期は確実に非表示） */
     .game-over-overlay {
       display: none;
       position: absolute;
       top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(15, 23, 42, 0.9);
+      background: rgba(15, 23, 42, 0.95);
       color: white;
       flex-direction: column;
       align-items: center;
@@ -183,7 +183,7 @@
     <div class="game-over-overlay" id="gameOverScreen">
       <h2 style="font-size: 28px; margin-bottom: 10px;">ゲームオーバー！</h2>
       <p style="font-size: 20px; margin: 5px 0;">てんすう: <span id="finalScore">0</span> てん</p>
-      <button class="retry-btn" id="retryButton">もういちど！</button>
+      <button class="retry-btn" id="retryButton" onclick="resetGame()">もういちど！</button>
     </div>
 
     <!-- 上部情報 -->
@@ -206,11 +206,11 @@
     <!-- 操作ボタン -->
     <div class="controls">
       <div class="btn-row">
-        <button class="ctrl-btn" id="btnLeft">◀</button>
-        <button class="ctrl-btn rotate" id="btnRotate">🔄 か回転</button>
-        <button class="ctrl-btn" id="btnRight">▶</button>
+        <button class="ctrl-btn" onclick="moveLeft()">◀</button>
+        <button class="ctrl-btn rotate" onclick="rotatePiece()">🔄 か回転</button>
+        <button class="ctrl-btn" onclick="moveRight()">▶</button>
       </div>
-      <button class="ctrl-btn down" id="btnDown">⬇️ はやく落とす</button>
+      <button class="ctrl-btn down" onclick="dropDown()">⬇️ はやく落とす</button>
     </div>
   </div>
 
@@ -242,39 +242,6 @@
     let gameInterval = null;
     let isGameOver = false;
 
-    // 効果音（エラー安全処理付き）
-    let audioCtx = null;
-    function playSound(type) {
-      try {
-        if (!audioCtx) {
-          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        }
-        if (audioCtx.state === 'suspended') {
-          audioCtx.resume();
-        }
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-
-        if (type === 'clear') {
-          osc.frequency.setValueAtTime(523.25, audioCtx.currentTime);
-          osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1);
-          osc.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.2);
-          gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-          gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.35);
-          osc.start(); osc.stop(audioCtx.currentTime + 0.35);
-        } else if (type === 'move') {
-          osc.frequency.setValueAtTime(300, audioCtx.currentTime);
-          gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
-          gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
-          osc.start(); osc.stop(audioCtx.currentTime + 0.05);
-        }
-      } catch (e) {
-        console.log("Audio not supported or blocked");
-      }
-    }
-
     // 盤面初期化
     function initBoard() {
       const boardEl = document.getElementById('board');
@@ -298,7 +265,7 @@
       
       currentPiece = {
         x: 2,
-        y: 0,
+        y: 1, // 画面外エラーを防ぐため少し下から出現
         dir: 0, 
         items: [food1, food2]
       };
@@ -327,14 +294,12 @@
     function moveLeft() {
       if (!isGameOver && currentPiece && canMove(currentPiece.x - 1, currentPiece.y, currentPiece.dir)) {
         currentPiece.x--;
-        playSound('move');
         draw();
       }
     }
     function moveRight() {
       if (!isGameOver && currentPiece && canMove(currentPiece.x + 1, currentPiece.y, currentPiece.dir)) {
         currentPiece.x++;
-        playSound('move');
         draw();
       }
     }
@@ -343,7 +308,6 @@
       const nextDir = (currentPiece.dir === 0) ? 1 : 0;
       if (canMove(currentPiece.x, currentPiece.y, nextDir)) {
         currentPiece.dir = nextDir;
-        playSound('move');
         draw();
       }
     }
@@ -364,7 +328,7 @@
       } else {
         const cells = getPieceCells(currentPiece.x, currentPiece.y, currentPiece.dir);
         cells.forEach((p, idx) => {
-          if (p.y >= 0) {
+          if (p.y >= 0 && p.y < ROWS) {
             board[p.y][p.x] = currentPiece.items[idx];
           }
         });
@@ -428,7 +392,6 @@
       }
 
       if (cellsToClear.size > 0) {
-        playSound('clear');
         score += cellsToClear.size * 10;
         document.getElementById('score').textContent = score;
 
@@ -523,24 +486,6 @@
       gameInterval = setInterval(tick, 1000);
     }
 
-    // iPad・モバイル向けにクリック/タッチ両方に対応するイベント登録
-    function bindButton(id, action) {
-      const el = document.getElementById(id);
-      if (!el) return;
-      const handleEvent = (e) => {
-        e.preventDefault();
-        action();
-      };
-      el.addEventListener('touchstart', handleEvent, { passive: false });
-      el.addEventListener('click', handleEvent);
-    }
-
-    bindButton('btnLeft', moveLeft);
-    bindButton('btnRight', moveRight);
-    bindButton('btnRotate', rotatePiece);
-    bindButton('btnDown', dropDown);
-    bindButton('retryButton', resetGame);
-
     // キーボード操作対応
     document.addEventListener('keydown', (e) => {
       if (e.key === 'ArrowLeft') moveLeft();
@@ -549,8 +494,10 @@
       if (e.key === 'ArrowDown') dropDown();
     });
 
-    // 初期起動
-    resetGame();
+    // 画面読み込み時に確実にスタート
+    window.onload = function() {
+      resetGame();
+    };
   </script>
 </body>
 </html>
