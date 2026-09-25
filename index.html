@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>パズル＆せいちょう！ 3しょくパクモン</title>
+  <title>おちもの！ 3しょくパクモンパズル</title>
   <style>
     * {
       box-sizing: border-box;
@@ -17,253 +17,214 @@
       padding: 10px;
       user-select: none;
       -webkit-user-select: none;
-      overflow-x: hidden;
+      overflow: hidden;
       color: #1e293b;
     }
 
-    .container {
+    .main-layout {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
       max-width: 500px;
       margin: 0 auto;
       background: white;
-      border-radius: 24px;
-      padding: 15px;
+      border-radius: 20px;
+      padding: 10px;
       box-shadow: 0 10px 25px rgba(0,0,0,0.08);
     }
 
-    h1 {
-      font-size: 22px;
-      margin: 5px 0 10px 0;
+    /* 上部：キャラ＆ステータス */
+    .top-section {
+      width: 100%;
+      background: linear-gradient(135deg, #e0f2fe 0%, #f0fdf4 100%);
+      border-radius: 16px;
+      padding: 8px 12px;
+      border: 2px solid #86efac;
+      margin-bottom: 8px;
+    }
+    .char-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+    }
+    .char-avatar {
+      font-size: 45px;
+      transition: transform 0.2s;
+    }
+    .char-avatar.grow {
+      transform: scale(1.3);
+    }
+    .char-info {
+      text-align: left;
+    }
+    .char-name {
+      font-size: 15px;
+      font-weight: bold;
+    }
+    .score-text {
+      font-size: 16px;
+      font-weight: bold;
       color: #059669;
     }
 
-    /* キャラクターエリア */
-    .char-card {
-      background: linear-gradient(135deg, #e0f2fe 0%, #f0fdf4 100%);
-      border-radius: 20px;
-      padding: 15px;
-      margin-bottom: 15px;
-      position: relative;
-      border: 3px solid #86efac;
-    }
-
-    .speech-bubble {
-      position: absolute;
-      top: -10px;
-      right: 15px;
-      background: #fef08a;
-      border: 2px solid #eab308;
-      border-radius: 12px;
-      padding: 4px 10px;
-      font-size: 13px;
-      font-weight: bold;
-      color: #854d0e;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-      animation: pulse 2s infinite;
-    }
-
-    @keyframes pulse {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.05); }
-    }
-
-    .char-avatar {
-      font-size: 70px;
-      margin: 5px 0;
-      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
-    .char-avatar.grow {
-      transform: scale(1.3) rotate(5deg);
-    }
-
-    .char-info {
-      font-weight: bold;
-      font-size: 16px;
-      color: #0f172a;
-    }
-
-    /* 成長ゲージ */
-    .gauge-container {
-      background: #e2e8f0;
-      border-radius: 10px;
-      height: 16px;
+    /* ゲージ */
+    .gauge-bg {
+      background: #cbd5e1;
+      border-radius: 8px;
+      height: 12px;
       width: 100%;
-      margin: 8px 0;
+      margin-top: 5px;
       overflow: hidden;
     }
     .gauge-fill {
-      background: linear-gradient(90deg, #10b981 0%, #3b82f6 100%);
+      background: linear-gradient(90deg, #10b981, #3b82f6);
       height: 100%;
       width: 0%;
-      transition: width 0.4s ease;
-      border-radius: 10px;
+      transition: width 0.3s;
     }
 
-    /* 栄養メーター（赤・黄・緑） */
-    .nutrition-status {
-      display: flex;
-      justify-content: space-around;
-      margin-top: 10px;
-      font-size: 12px;
-      font-weight: bold;
-    }
-    .nut-badge {
-      padding: 3px 8px;
-      border-radius: 8px;
-      color: white;
-    }
-    .nut-red { background: #ef4444; }
-    .nut-yellow { background: #eab308; }
-    .nut-green { background: #22c55e; }
-
-    /* パズルエリア */
-    .puzzle-grid {
+    /* パズル盤面 (6列×10行) */
+    #board {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 10px;
-      background: #f1f5f9;
-      padding: 12px;
-      border-radius: 20px;
-      margin-bottom: 15px;
+      grid-template-columns: repeat(6, 40px);
+      grid-template-rows: repeat(10, 40px);
+      gap: 2px;
+      background: #334155;
+      padding: 4px;
+      border-radius: 12px;
+      box-shadow: inset 0 4px 8px rgba(0,0,0,0.2);
     }
-
-    .block {
-      aspect-ratio: 1;
-      background: white;
-      border-radius: 16px;
+    .cell {
+      background: #0f172a;
+      border-radius: 6px;
       display: flex;
-      flex-direction: column;
-      justify-content: center;
       align-items: center;
-      font-size: 32px;
-      cursor: pointer;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-      border: 3px solid transparent;
-      transition: transform 0.1s, border-color 0.2s;
-    }
-    .block:active {
-      transform: scale(0.9);
-    }
-    .block.selected {
-      border-color: #3b82f6;
-      background-color: #eff6ff;
-      transform: scale(1.05);
-    }
-    .block-name {
-      font-size: 10px;
-      font-weight: bold;
-      color: #475569;
-      margin-top: -2px;
+      justify-content: center;
+      font-size: 22px;
+      position: relative;
     }
 
-    /* 操作・スコア */
+    /* 枠線（グループ色） */
+    .cell.group-red { border: 2px solid #ef4444; background: #450a0a; }
+    .cell.group-yellow { border: 2px solid #eab308; background: #422006; }
+    .cell.group-green { border: 2px solid #22c55e; background: #052e16; }
+
+    /* 操作ボタン（iPad向け） */
     .controls {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 10px;
-    }
-    .score-box {
-      font-size: 18px;
-      font-weight: bold;
-      color: #047857;
-    }
-    .btn {
-      font-size: 16px;
-      font-weight: bold;
-      padding: 10px 20px;
-      border-radius: 50px;
-      border: none;
-      background: #059669;
-      color: white;
-      cursor: pointer;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    }
-    .btn:active { transform: scale(0.95); }
-
-    /* ルール説明テキスト */
-    .rule-tip {
-      font-size: 12px;
-      color: #64748b;
+      flex-direction: column;
+      gap: 6px;
+      width: 100%;
+      max-width: 260px;
       margin-top: 8px;
+    }
+    .btn-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .ctrl-btn {
+      flex: 1;
+      font-size: 22px;
       font-weight: bold;
+      padding: 10px 0;
+      border-radius: 12px;
+      border: none;
+      background: #0284c7;
+      color: white;
+      box-shadow: 0 4px #0369a1;
+      cursor: pointer;
+    }
+    .ctrl-btn:active {
+      transform: translateY(2px);
+      box-shadow: 0 2px #0369a1;
+    }
+    .ctrl-btn.rotate { background: #10b981; box-shadow: 0 4px #047857; }
+    .ctrl-btn.down { background: #f59e0b; box-shadow: 0 4px #b45309; }
+
+    /* ゲームオーバー表示 */
+    .game-over-overlay {
+      display: none;
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.75);
+      color: white;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border-radius: 20px;
+      z-index: 100;
     }
   </style>
 </head>
 <body>
 
-  <div class="container">
-    <h1>3しょくパクモン パズル</h1>
+  <div class="main-layout" style="position: relative;">
+    
+    <!-- ゲームオーバー画面 -->
+    <div class="game-over-overlay" id="gameOverScreen">
+      <h2>ゲームオーバー！</h2>
+      <p style="font-size: 18px;">てんすう: <span id="finalScore">0</span> てん</p>
+      <button class="ctrl-btn" style="width:160px;" onclick="resetGame()">もういちど！</button>
+    </div>
 
-    <!-- キャラクター表示エリア -->
-    <div class="char-card">
-      <div class="speech-bubble" id="speech">あか・きいろ・みどり を えらんでね！</div>
-      <div class="char-avatar" id="avatar">👶</div>
-      <div class="char-info">
-        <span id="char-name">あかちゃんパクモン</span> (Lv.<span id="char-lv">1</span>)
+    <!-- 上部情報 -->
+    <div class="top-section">
+      <div class="char-row">
+        <div class="char-avatar" id="avatar">👶</div>
+        <div class="char-info">
+          <div class="char-name" id="charName">あかちゃんパクモン</div>
+          <div class="score-text">てんすう: <span id="score">0</span></div>
+        </div>
       </div>
-      
-      <!-- 成長メーター -->
-      <div class="gauge-container">
+      <div class="gauge-bg">
         <div class="gauge-fill" id="gauge"></div>
       </div>
-
-      <!-- 栄養獲得バランス -->
-      <div class="nutrition-status">
-        <span class="nut-badge nut-red">あか: <span id="cnt-red">0</span></span>
-        <span class="nut-badge nut-yellow">きいろ: <span id="cnt-yellow">0</span></span>
-        <span class="nut-badge nut-green">みどり: <span id="cnt-green">0</span></span>
-      </div>
     </div>
 
-    <!-- パズル盤面（4x4） -->
-    <div class="puzzle-grid" id="grid">
-      <!-- JSでブロックが生成されます -->
-    </div>
+    <!-- パズル盤面 -->
+    <div id="board"></div>
 
-    <div class="rule-tip">
-      💡 <b>ルール:</b> 「あか」「きいろ」「みどり」を <b>それぞれ1つ以上</b> えらんで「たべる」を押そう！
-    </div>
-
-    <!-- コントロールボタン -->
+    <!-- 操作ボタン -->
     <div class="controls">
-      <div class="score-box">てんすう: <span id="score">0</span></div>
-      <button class="btn" onclick="eatSelected()">🍴 たべる！</button>
+      <div class="btn-row">
+        <button class="ctrl-btn" onclick="moveLeft()">◀</button>
+        <button class="ctrl-btn rotate" onclick="rotatePiece()">🔄 か回転</button>
+        <button class="ctrl-btn" onclick="moveRight()">▶</button>
+      </div>
+      <button class="ctrl-btn down" onclick="dropDown()">⬇️ はやく落とす</button>
     </div>
   </div>
 
   <script>
-    // 食材データ定義
-    const FOOD_DATA = [
+    const COLS = 6;
+    const ROWS = 10;
+    
+    // 食材データ
+    const FOODS = [
       { name: "にく", emoji: "🥩", group: "red" },
       { name: "さかな", emoji: "🐟", group: "red" },
-      { name: "たまご", emoji: "🥚", group: "red" },
-      { name: "とうふ", emoji: "🟩", group: "red" },
       { name: "ごはん", emoji: "🍚", group: "yellow" },
       { name: "パン", emoji: "🍞", group: "yellow" },
-      { name: "めん", emoji: "🍜", group: "yellow" },
-      { name: "いも", emoji: "🥔", group: "yellow" },
       { name: "トマト", emoji: "🍅", group: "green" },
-      { name: "ぶどう", emoji: "🍇", group: "green" },
-      { name: "キャベツ", emoji: "🥬", group: "green" },
-      { name: "きのこ", emoji: "🍄", group: "green" }
+      { name: "ぶどう", emoji: "🍇", group: "green" }
     ];
 
-    // キャラクター進化形態
     const EVOLUTIONS = [
       { lv: 1, name: "あかちゃんパクモン", avatar: "👶", reqScore: 0 },
-      { lv: 2, name: "こどもパクモン", avatar: "👦", reqScore: 50 },
-      { lv: 3, name: "おとなパクモン", avatar: "🧍", reqScore: 120 },
-      { lv: 4, name: "スーパーパクモン", avatar: "🦸‍♂️", reqScore: 220 }
+      { lv: 2, name: "こどもパクモン", avatar: "👦", reqScore: 60 },
+      { lv: 3, name: "おとなパクモン", avatar: "🧍", reqScore: 150 },
+      { lv: 4, name: "スーパーパクモン", avatar: "🦸‍♂️", reqScore: 300 }
     ];
 
-    let gridData = [];
-    let selectedIndices = [];
+    let board = [];
+    let currentPiece = null;
     let score = 0;
     let currentLv = 1;
+    let gameInterval = null;
+    let isGameOver = false;
 
-    let groupCounts = { red: 0, yellow: 0, green: 0 };
-
-    // サウンド処理（Web Audio API）
+    // 効果音（Web Audio API）
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     function playSound(type) {
       if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -272,175 +233,296 @@
       osc.connect(gain);
       gain.connect(audioCtx.destination);
 
-      if (type === 'select') {
-        osc.frequency.setValueAtTime(400, audioCtx.currentTime);
-        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
-        osc.start(); osc.stop(audioCtx.currentTime + 0.1);
-      } else if (type === 'eat') {
-        osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
-        osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.08); // E5
-        osc.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.16); // G5
-        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
-        osc.start(); osc.stop(audioCtx.currentTime + 0.3);
-      } else if (type === 'ng') {
-        osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(180, audioCtx.currentTime);
-        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
-        osc.start(); osc.stop(audioCtx.currentTime + 0.2);
-      } else if (type === 'levelUp') {
+      if (type === 'clear') {
         osc.frequency.setValueAtTime(523.25, audioCtx.currentTime);
-        osc.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.15);
-        osc.frequency.setValueAtTime(1046.50, audioCtx.currentTime + 0.3);
-        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
-        osc.start(); osc.stop(audioCtx.currentTime + 0.5);
+        osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1);
+        osc.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.2);
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.35);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.35);
+      } else if (type === 'move') {
+        osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.05);
       }
     }
 
-    // ランダムな食材生成
-    function getRandomFood() {
-      return FOOD_DATA[Math.floor(Math.random() * FOOD_DATA.length)];
-    }
+    // 盤面初期化
+    function initBoard() {
+      const boardEl = document.getElementById('board');
+      boardEl.innerHTML = '';
+      board = Array(ROWS).fill(null).map(() => Array(COLS).fill(null));
 
-    // ボード初期化 (16マス)
-    function initGrid() {
-      gridData = [];
-      for (let i = 0; i < 16; i++) {
-        gridData.push(getRandomFood());
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          const cell = document.createElement('div');
+          cell.className = 'cell';
+          cell.id = `cell-${r}-${c}`;
+          boardEl.appendChild(cell);
+        }
       }
-      renderGrid();
     }
 
-    // グリッド描画
-    function renderGrid() {
-      const gridEl = document.getElementById('grid');
-      gridEl.innerHTML = '';
+    // ランダムなペア生成 (2つ縦に並んだピース)
+    function spawnPiece() {
+      const food1 = FOODS[Math.floor(Math.random() * FOODS.length)];
+      const food2 = FOODS[Math.floor(Math.random() * FOODS.length)];
+      
+      currentPiece = {
+        x: 2,
+        y: 0,
+        // orientation: 0 (縦: 上が2/下が1), 1 (横: 左が1/右が2)
+        dir: 0, 
+        items: [food1, food2]
+      };
 
-      gridData.forEach((food, index) => {
-        const block = document.createElement('div');
-        block.className = `block ${selectedIndices.includes(index) ? 'selected' : ''}`;
-        
-        // 色付け境界線
-        if (food.group === 'red') block.style.borderColor = '#fca5a5';
-        if (food.group === 'yellow') block.style.borderColor = '#fde047';
-        if (food.group === 'green') block.style.borderColor = '#86efac';
+      if (!canMove(currentPiece.x, currentPiece.y, currentPiece.dir)) {
+        // 出現位置が埋まっていればゲームオーバー
+        endGame();
+      }
+    }
 
-        block.innerHTML = `
-          <span>${food.emoji}</span>
-          <span class="block-name">${food.name}</span>
-        `;
-
-        block.onclick = () => toggleSelect(index);
-        gridEl.appendChild(block);
+    // 判定処理（重なり・画面外の検知）
+    function canMove(x, y, dir) {
+      const pos = getPieceCells(x, y, dir);
+      return pos.every(p => {
+        return p.x >= 0 && p.x < COLS && p.y >= 0 && p.y < ROWS && !board[p.y][p.x];
       });
     }
 
-    // ブロック選択/解除
-    function toggleSelect(index) {
-      playSound('select');
-      const pos = selectedIndices.indexOf(index);
-      if (pos > -1) {
-        selectedIndices.splice(pos, 1);
-      } else {
-        selectedIndices.push(index);
+    function getPieceCells(x, y, dir) {
+      if (dir === 0) { // 縦
+        return [{x: x, y: y}, {x: x, y: y - 1}];
+      } else { // 横
+        return [{x: x, y: y}, {x: x + 1, y: y}];
       }
-      renderGrid();
     }
 
-    // 「たべる」ボタン処理
-    function eatSelected() {
-      if (selectedIndices.length < 3) {
-        playSound('ng');
-        setSpeech('3つ以上の たべものを えらんでね！');
-        return;
+    // ピースの移動
+    function moveLeft() {
+      if (!isGameOver && canMove(currentPiece.x - 1, currentPiece.y, currentPiece.dir)) {
+        currentPiece.x--;
+        playSound('move');
+        draw();
+      }
+    }
+    function moveRight() {
+      if (!isGameOver && canMove(currentPiece.x + 1, currentPiece.y, currentPiece.dir)) {
+        currentPiece.x++;
+        playSound('move');
+        draw();
+      }
+    }
+    function rotatePiece() {
+      if (isGameOver) return;
+      const nextDir = (currentPiece.dir === 0) ? 1 : 0;
+      if (canMove(currentPiece.x, currentPiece.y, nextDir)) {
+        currentPiece.dir = nextDir;
+        playSound('move');
+        draw();
+      }
+    }
+    function dropDown() {
+      if (isGameOver) return;
+      while (canMove(currentPiece.x, currentPiece.y + 1, currentPiece.dir)) {
+        currentPiece.y++;
+      }
+      tick();
+    }
+
+    // 1ステップ進める（自動落下）
+    function tick() {
+      if (isGameOver) return;
+
+      if (canMove(currentPiece.x, currentPiece.y + 1, currentPiece.dir)) {
+        currentPiece.y++;
+      } else {
+        // 着地して固定
+        const cells = getPieceCells(currentPiece.x, currentPiece.y, currentPiece.dir);
+        cells.forEach((p, idx) => {
+          if (p.y >= 0) {
+            board[p.y][p.x] = currentPiece.items[idx];
+          }
+        });
+
+        // 浮いているブロックを下に落とす
+        applyGravity();
+
+        // 3色揃っているかチェック＆削除
+        checkMatchAndClear();
+
+        // 次のピースへ
+        spawnPiece();
+      }
+      draw();
+    }
+
+    // 重力処理
+    function applyGravity() {
+      for (let c = 0; c < COLS; c++) {
+        for (let r = ROWS - 1; r >= 0; r--) {
+          if (!board[r][c]) {
+            for (let k = r - 1; k >= 0; k--) {
+              if (board[k][c]) {
+                board[r][c] = board[k][c];
+                board[k][c] = null;
+                break;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // 3色（赤・黄・緑）揃い判定＆削除
+    function checkMatchAndClear() {
+      let cleared = false;
+      let cellsToClear = new Set();
+
+      // 横方向チェック (3連続の中に赤・黄・緑が含まれるか)
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c <= COLS - 3; c++) {
+          let trio = [board[r][c], board[r][c+1], board[r][c+2]];
+          if (trio.every(item => item !== null)) {
+            let groups = trio.map(i => i.group);
+            if (groups.includes('red') && groups.includes('yellow') && groups.includes('green')) {
+              cellsToClear.add(`${r},${c}`);
+              cellsToClear.add(`${r},${c+1}`);
+              cellsToClear.add(`${r},${c+2}`);
+            }
+          }
+        }
       }
 
-      // 選択したアイテムのグループ集計
-      const selectedGroups = selectedIndices.map(i => gridData[i].group);
-      const hasRed = selectedGroups.includes('red');
-      const hasYellow = selectedGroups.includes('yellow');
-      const hasGreen = selectedGroups.includes('green');
+      // 縦方向チェック
+      for (let c = 0; c < COLS; c++) {
+        for (let r = 0; r <= ROWS - 3; r++) {
+          let trio = [board[r][c], board[r+1][c], board[r+2][c]];
+          if (trio.every(item => item !== null)) {
+            let groups = trio.map(i => i.group);
+            if (groups.includes('red') && groups.includes('yellow') && groups.includes('green')) {
+              cellsToClear.add(`${r},${c}`);
+              cellsToClear.add(`${r+1},${c}`);
+              cellsToClear.add(`${r+2},${c}`);
+            }
+          }
+        }
+      }
 
-      // 3色（赤・黄・緑）揃っているか確認
-      if (hasRed && hasYellow && hasGreen) {
-        playSound('eat');
-        
-        // 得点加算（消した個数に応じてボーナス）
-        const gainedScore = selectedIndices.length * 10;
-        score += gainedScore;
+      // 消去実行
+      if (cellsToClear.size > 0) {
+        playSound('clear');
+        cleared = true;
+        score += cellsToClear.size * 10;
         document.getElementById('score').textContent = score;
 
-        // グループカウント加算
-        selectedGroups.forEach(g => groupCounts[g]++);
-        document.getElementById('cnt-red').textContent = groupCounts.red;
-        document.getElementById('cnt-yellow').textContent = groupCounts.yellow;
-        document.getElementById('cnt-green').textContent = groupCounts.green;
+        cellsToClear.forEach(key => {
+          let [r, c] = key.split(',').map(Number);
+          board[r][c] = null;
+        });
 
-        // 吹き出しメッセージ
-        setSpeech(`バランスバッチリ！ +${gainedScore}てん！`);
-
-        // キャラのアニメーション
+        // アニメーション＆進化チェック
         const avatarEl = document.getElementById('avatar');
         avatarEl.classList.add('grow');
-        setTimeout(() => avatarEl.classList.remove('grow'), 300);
+        setTimeout(() => avatarEl.classList.remove('grow'), 200);
 
-        // 選択されたマスを新しい食材に入れ替え
-        selectedIndices.forEach(idx => {
-          gridData[idx] = getRandomFood();
-        });
-        selectedIndices = [];
+        updateEvolution();
 
-        // 成長・進化チェック
-        updateGrowth();
-        renderGrid();
-      } else {
-        // バランスが悪い場合
-        playSound('ng');
-        let missing = [];
-        if (!hasRed) missing.push('あか');
-        if (!hasYellow) missing.push('きいろ');
-        if (!hasGreen) missing.push('みどり');
-        setSpeech(`【${missing.join('・')}】が たりないよ！`);
+        // 詰めた後に再度重力適用
+        applyGravity();
+        // 連鎖チェックのため再帰
+        checkMatchAndClear();
       }
     }
 
-    // セリフ変更
-    function setSpeech(msg) {
-      document.getElementById('speech').textContent = msg;
-    }
-
-    // 成長・進化処理
-    function updateGrowth() {
-      // 現在のLvでの進捗率計算
+    // 進化チェック
+    function updateEvolution() {
       let nextEv = EVOLUTIONS.find(e => e.lv === currentLv + 1);
       let currentEv = EVOLUTIONS.find(e => e.lv === currentLv);
 
       if (nextEv) {
         let progress = ((score - currentEv.reqScore) / (nextEv.reqScore - currentEv.reqScore)) * 100;
         if (progress >= 100) {
-          // レベルアップ！
           currentLv++;
-          playSound('levelUp');
           let newEv = EVOLUTIONS.find(e => e.lv === currentLv);
           document.getElementById('avatar').textContent = newEv.avatar;
-          document.getElementById('char-name').textContent = newEv.name;
-          document.getElementById('char-lv').textContent = newEv.lv;
-          setSpeech(`やったー！ ${newEv.name} に しんかしたよ！ 🎉`);
-          progress = 0;
+          document.getElementById('charName').textContent = newEv.name;
         }
         document.getElementById('gauge').style.width = `${Math.min(Math.max(progress, 0), 100)}%`;
       } else {
-        // 最高レベル到達
         document.getElementById('gauge').style.width = '100%';
-        setSpeech('さいこうレベル！ かんぜんたい パクモンだ！ 👑');
       }
     }
 
+    // 描画処理
+    function draw() {
+      // 盤面クリア描画
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          const cell = document.getElementById(`cell-${r}-${c}`);
+          cell.className = 'cell';
+          const item = board[r][c];
+          if (item) {
+            cell.textContent = item.emoji;
+            cell.classList.add(`group-${item.group}`);
+          } else {
+            cell.textContent = '';
+          }
+        }
+      }
+
+      // 操作中ピース描画
+      if (currentPiece && !isGameOver) {
+        const cells = getPieceCells(currentPiece.x, currentPiece.y, currentPiece.dir);
+        cells.forEach((p, idx) => {
+          if (p.y >= 0 && p.y < ROWS) {
+            const cell = document.getElementById(`cell-${p.y}-${p.x}`);
+            const item = currentPiece.items[idx];
+            cell.textContent = item.emoji;
+            cell.classList.add(`group-${item.group}`);
+          }
+        });
+      }
+    }
+
+    // ゲームオーバー
+    function endGame() {
+      isGameOver = true;
+      clearInterval(gameInterval);
+      document.getElementById('finalScore').textContent = score;
+      document.getElementById('gameOverScreen').style.display = 'flex';
+    }
+
+    // リセット
+    function resetGame() {
+      isGameOver = false;
+      score = 0;
+      currentLv = 1;
+      document.getElementById('score').textContent = 0;
+      document.getElementById('avatar').textContent = EVOLUTIONS[0].avatar;
+      document.getElementById('charName').textContent = EVOLUTIONS[0].name;
+      document.getElementById('gauge').style.width = '0%';
+      document.getElementById('gameOverScreen').style.display = 'none';
+
+      initBoard();
+      spawnPiece();
+      draw();
+
+      if (gameInterval) clearInterval(gameInterval);
+      gameInterval = setInterval(tick, 1000); // 1秒ごとに落とす
+    }
+
+    // キーボード操作対応（PC動作確認用）
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft') moveLeft();
+      if (e.key === 'ArrowRight') moveRight();
+      if (e.key === 'ArrowUp') rotatePiece();
+      if (e.key === 'ArrowDown') dropDown();
+    });
+
     // 初期起動
-    initGrid();
+    resetGame();
   </script>
 </body>
 </html>
