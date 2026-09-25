@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>おちもの！ 3しょくパクモンパズル</title>
   <style>
     * {
@@ -31,6 +31,7 @@
       border-radius: 20px;
       padding: 10px;
       box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+      position: relative;
     }
 
     /* 上部：キャラ＆ステータス */
@@ -125,15 +126,16 @@
     }
     .ctrl-btn {
       flex: 1;
-      font-size: 22px;
+      font-size: 20px;
       font-weight: bold;
-      padding: 10px 0;
+      padding: 12px 0;
       border-radius: 12px;
       border: none;
       background: #0284c7;
       color: white;
       box-shadow: 0 4px #0369a1;
       cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
     }
     .ctrl-btn:active {
       transform: translateY(2px);
@@ -142,30 +144,46 @@
     .ctrl-btn.rotate { background: #10b981; box-shadow: 0 4px #047857; }
     .ctrl-btn.down { background: #f59e0b; box-shadow: 0 4px #b45309; }
 
-    /* ゲームオーバー表示 */
+    /* ゲームオーバー表示（最前面に表示＆タッチ領域確保） */
     .game-over-overlay {
       display: none;
       position: absolute;
       top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.75);
+      background: rgba(15, 23, 42, 0.9);
       color: white;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       border-radius: 20px;
-      z-index: 100;
+      z-index: 999;
+    }
+    .retry-btn {
+      font-size: 22px;
+      font-weight: bold;
+      padding: 14px 28px;
+      border-radius: 16px;
+      border: none;
+      background: #10b981;
+      color: white;
+      box-shadow: 0 4px #047857;
+      cursor: pointer;
+      margin-top: 15px;
+    }
+    .retry-btn:active {
+      transform: translateY(2px);
+      box-shadow: 0 2px #047857;
     }
   </style>
 </head>
 <body>
 
-  <div class="main-layout" style="position: relative;">
+  <div class="main-layout">
     
     <!-- ゲームオーバー画面 -->
     <div class="game-over-overlay" id="gameOverScreen">
-      <h2>ゲームオーバー！</h2>
-      <p style="font-size: 18px;">てんすう: <span id="finalScore">0</span> てん</p>
-      <button class="ctrl-btn" style="width:160px;" onclick="resetGame()">もういちど！</button>
+      <h2 style="font-size: 28px; margin-bottom: 10px;">ゲームオーバー！</h2>
+      <p style="font-size: 20px; margin: 5px 0;">てんすう: <span id="finalScore">0</span> てん</p>
+      <button class="retry-btn" id="retryButton">もういちど！</button>
     </div>
 
     <!-- 上部情報 -->
@@ -188,11 +206,11 @@
     <!-- 操作ボタン -->
     <div class="controls">
       <div class="btn-row">
-        <button class="ctrl-btn" onclick="moveLeft()">◀</button>
-        <button class="ctrl-btn rotate" onclick="rotatePiece()">🔄 か回転</button>
-        <button class="ctrl-btn" onclick="moveRight()">▶</button>
+        <button class="ctrl-btn" id="btnLeft">◀</button>
+        <button class="ctrl-btn rotate" id="btnRotate">🔄 か回転</button>
+        <button class="ctrl-btn" id="btnRight">▶</button>
       </div>
-      <button class="ctrl-btn down" onclick="dropDown()">⬇️ はやく落とす</button>
+      <button class="ctrl-btn down" id="btnDown">⬇️ はやく落とす</button>
     </div>
   </div>
 
@@ -224,27 +242,36 @@
     let gameInterval = null;
     let isGameOver = false;
 
-    // 効果音（Web Audio API）
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    // 効果音（エラー安全処理付き）
+    let audioCtx = null;
     function playSound(type) {
-      if (audioCtx.state === 'suspended') audioCtx.resume();
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
+      try {
+        if (!audioCtx) {
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
 
-      if (type === 'clear') {
-        osc.frequency.setValueAtTime(523.25, audioCtx.currentTime);
-        osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1);
-        osc.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.2);
-        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.35);
-        osc.start(); osc.stop(audioCtx.currentTime + 0.35);
-      } else if (type === 'move') {
-        osc.frequency.setValueAtTime(300, audioCtx.currentTime);
-        gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
-        osc.start(); osc.stop(audioCtx.currentTime + 0.05);
+        if (type === 'clear') {
+          osc.frequency.setValueAtTime(523.25, audioCtx.currentTime);
+          osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1);
+          osc.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.2);
+          gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.35);
+          osc.start(); osc.stop(audioCtx.currentTime + 0.35);
+        } else if (type === 'move') {
+          osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+          gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
+          osc.start(); osc.stop(audioCtx.currentTime + 0.05);
+        }
+      } catch (e) {
+        console.log("Audio not supported or blocked");
       }
     }
 
@@ -264,7 +291,7 @@
       }
     }
 
-    // ランダムなペア生成 (2つ縦に並んだピース)
+    // ピース生成
     function spawnPiece() {
       const food1 = FOODS[Math.floor(Math.random() * FOODS.length)];
       const food2 = FOODS[Math.floor(Math.random() * FOODS.length)];
@@ -272,18 +299,15 @@
       currentPiece = {
         x: 2,
         y: 0,
-        // orientation: 0 (縦: 上が2/下が1), 1 (横: 左が1/右が2)
         dir: 0, 
         items: [food1, food2]
       };
 
       if (!canMove(currentPiece.x, currentPiece.y, currentPiece.dir)) {
-        // 出現位置が埋まっていればゲームオーバー
         endGame();
       }
     }
 
-    // 判定処理（重なり・画面外の検知）
     function canMove(x, y, dir) {
       const pos = getPieceCells(x, y, dir);
       return pos.every(p => {
@@ -299,23 +323,23 @@
       }
     }
 
-    // ピースの移動
+    // 移動処理
     function moveLeft() {
-      if (!isGameOver && canMove(currentPiece.x - 1, currentPiece.y, currentPiece.dir)) {
+      if (!isGameOver && currentPiece && canMove(currentPiece.x - 1, currentPiece.y, currentPiece.dir)) {
         currentPiece.x--;
         playSound('move');
         draw();
       }
     }
     function moveRight() {
-      if (!isGameOver && canMove(currentPiece.x + 1, currentPiece.y, currentPiece.dir)) {
+      if (!isGameOver && currentPiece && canMove(currentPiece.x + 1, currentPiece.y, currentPiece.dir)) {
         currentPiece.x++;
         playSound('move');
         draw();
       }
     }
     function rotatePiece() {
-      if (isGameOver) return;
+      if (isGameOver || !currentPiece) return;
       const nextDir = (currentPiece.dir === 0) ? 1 : 0;
       if (canMove(currentPiece.x, currentPiece.y, nextDir)) {
         currentPiece.dir = nextDir;
@@ -324,21 +348,20 @@
       }
     }
     function dropDown() {
-      if (isGameOver) return;
+      if (isGameOver || !currentPiece) return;
       while (canMove(currentPiece.x, currentPiece.y + 1, currentPiece.dir)) {
         currentPiece.y++;
       }
       tick();
     }
 
-    // 1ステップ進める（自動落下）
+    // 落下処理
     function tick() {
-      if (isGameOver) return;
+      if (isGameOver || !currentPiece) return;
 
       if (canMove(currentPiece.x, currentPiece.y + 1, currentPiece.dir)) {
         currentPiece.y++;
       } else {
-        // 着地して固定
         const cells = getPieceCells(currentPiece.x, currentPiece.y, currentPiece.dir);
         cells.forEach((p, idx) => {
           if (p.y >= 0) {
@@ -346,19 +369,15 @@
           }
         });
 
-        // 浮いているブロックを下に落とす
         applyGravity();
-
-        // 3色揃っているかチェック＆削除
         checkMatchAndClear();
-
-        // 次のピースへ
-        spawnPiece();
+        if (!isGameOver) {
+          spawnPiece();
+        }
       }
       draw();
     }
 
-    // 重力処理
     function applyGravity() {
       for (let c = 0; c < COLS; c++) {
         for (let r = ROWS - 1; r >= 0; r--) {
@@ -375,12 +394,10 @@
       }
     }
 
-    // 3色（赤・黄・緑）揃い判定＆削除
     function checkMatchAndClear() {
-      let cleared = false;
       let cellsToClear = new Set();
 
-      // 横方向チェック (3連続の中に赤・黄・緑が含まれるか)
+      // 横チェック
       for (let r = 0; r < ROWS; r++) {
         for (let c = 0; c <= COLS - 3; c++) {
           let trio = [board[r][c], board[r][c+1], board[r][c+2]];
@@ -395,7 +412,7 @@
         }
       }
 
-      // 縦方向チェック
+      // 縦チェック
       for (let c = 0; c < COLS; c++) {
         for (let r = 0; r <= ROWS - 3; r++) {
           let trio = [board[r][c], board[r+1][c], board[r+2][c]];
@@ -410,10 +427,8 @@
         }
       }
 
-      // 消去実行
       if (cellsToClear.size > 0) {
         playSound('clear');
-        cleared = true;
         score += cellsToClear.size * 10;
         document.getElementById('score').textContent = score;
 
@@ -422,21 +437,16 @@
           board[r][c] = null;
         });
 
-        // アニメーション＆進化チェック
         const avatarEl = document.getElementById('avatar');
         avatarEl.classList.add('grow');
         setTimeout(() => avatarEl.classList.remove('grow'), 200);
 
         updateEvolution();
-
-        // 詰めた後に再度重力適用
         applyGravity();
-        // 連鎖チェックのため再帰
         checkMatchAndClear();
       }
     }
 
-    // 進化チェック
     function updateEvolution() {
       let nextEv = EVOLUTIONS.find(e => e.lv === currentLv + 1);
       let currentEv = EVOLUTIONS.find(e => e.lv === currentLv);
@@ -455,12 +465,11 @@
       }
     }
 
-    // 描画処理
     function draw() {
-      // 盤面クリア描画
       for (let r = 0; r < ROWS; r++) {
         for (let c = 0; c < COLS; c++) {
           const cell = document.getElementById(`cell-${r}-${c}`);
+          if (!cell) continue;
           cell.className = 'cell';
           const item = board[r][c];
           if (item) {
@@ -472,33 +481,35 @@
         }
       }
 
-      // 操作中ピース描画
       if (currentPiece && !isGameOver) {
         const cells = getPieceCells(currentPiece.x, currentPiece.y, currentPiece.dir);
         cells.forEach((p, idx) => {
           if (p.y >= 0 && p.y < ROWS) {
             const cell = document.getElementById(`cell-${p.y}-${p.x}`);
-            const item = currentPiece.items[idx];
-            cell.textContent = item.emoji;
-            cell.classList.add(`group-${item.group}`);
+            if (cell) {
+              const item = currentPiece.items[idx];
+              cell.textContent = item.emoji;
+              cell.classList.add(`group-${item.group}`);
+            }
           }
         });
       }
     }
 
-    // ゲームオーバー
     function endGame() {
       isGameOver = true;
-      clearInterval(gameInterval);
+      if (gameInterval) clearInterval(gameInterval);
       document.getElementById('finalScore').textContent = score;
       document.getElementById('gameOverScreen').style.display = 'flex';
     }
 
-    // リセット
     function resetGame() {
+      if (gameInterval) clearInterval(gameInterval);
+      
       isGameOver = false;
       score = 0;
       currentLv = 1;
+      
       document.getElementById('score').textContent = 0;
       document.getElementById('avatar').textContent = EVOLUTIONS[0].avatar;
       document.getElementById('charName').textContent = EVOLUTIONS[0].name;
@@ -509,11 +520,28 @@
       spawnPiece();
       draw();
 
-      if (gameInterval) clearInterval(gameInterval);
-      gameInterval = setInterval(tick, 1000); // 1秒ごとに落とす
+      gameInterval = setInterval(tick, 1000);
     }
 
-    // キーボード操作対応（PC動作確認用）
+    // iPad・モバイル向けにクリック/タッチ両方に対応するイベント登録
+    function bindButton(id, action) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const handleEvent = (e) => {
+        e.preventDefault();
+        action();
+      };
+      el.addEventListener('touchstart', handleEvent, { passive: false });
+      el.addEventListener('click', handleEvent);
+    }
+
+    bindButton('btnLeft', moveLeft);
+    bindButton('btnRight', moveRight);
+    bindButton('btnRotate', rotatePiece);
+    bindButton('btnDown', dropDown);
+    bindButton('retryButton', resetGame);
+
+    // キーボード操作対応
     document.addEventListener('keydown', (e) => {
       if (e.key === 'ArrowLeft') moveLeft();
       if (e.key === 'ArrowRight') moveRight();
